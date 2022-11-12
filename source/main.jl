@@ -1,7 +1,18 @@
-print("Hello world !")
+## Imports
 
 
-print("hold on now, don't print me yet")
+## Define variables
+N = 10
+u = Vector{N^2}
+println(u)
 
-print(string(3+2))
+## Advec
+
+
+
+## Body forces
+
+## Project
+
+
 
