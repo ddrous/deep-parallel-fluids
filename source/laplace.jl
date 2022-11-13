@@ -18,10 +18,14 @@ mutable struct Laplace
 end
 
 ## Go from vector of size (N)*(M) to appropriate matrix 
-vec2mat(U::Vector{T}, N::Int64, M::Int64) where {T<:Number} = reverse(permutedims(reshape(U, (M,N))), dims=1)
+# vec2mat(U::Vector{T}, N::Int64, M::Int64) where {T<:Number} = reverse(permutedims(reshape(U, (M,N))), dims=1)
+vec2mat(U::Vector{T}, N::Int64, M::Int64) where {T<:Number} = reshape(U, (N,M))
 
 ## Go from a matrix to a appropriate vector
-mat2vec(u::Matrix{T}) where {T<:Number} = vec(permutedims(reverse(u, dims=1)))
+# mat2vec(u::Matrix{T}) where {T<:Number} = vec(permutedims(reverse(u, dims=1)))
+mat2vec(u::Matrix{T}) where {T<:Number} = vec(u)
+
+mat22d(u::Matrix{T}) where {T<:Number} = reverse(permutedims(u), dims=1)
 
 function setbc(u::Matrix{T}, bc::Float64, g::Geometry) where {T<:Number}
     u[1,:] .= bc
@@ -48,7 +52,7 @@ end
 
 
 function initlaplace(g::Geometry)
-    bc = 0.0
+    bc = 0.5
     u = zeros(Float64, (g.Nx+1,g.Ny+1))
     setbc(u, bc, g)
     f = ones(Float64, (g.Nx+1,g.Ny+1))
@@ -62,36 +66,42 @@ function solvelaplace(l::Laplace, g::Geometry)
     F = mat2vec(l.f[2:g.Nx, 2:g.Ny])
     A = zeros(Float64, (n,n))
 
-    Δx = g.Lx/(g.Nx+1)
-    Δy = g.Ly/(g.Ny+1)
+    Δx = g.Lx/g.Nx
+    Δy = g.Ly/g.Ny
     val1 = 1.0/(Δx^2)
     val2 = 1.0/(Δy^2)
     val3 = 2.0 * (val1+val2)
+    println("Δx=", Δx)
 
     bcvals = Dict("south"=>val1, "east"=>val2, "north"=>val1, "west"=>val2)
 
     for i in 2:g.Nx, j in 2:g.Ny
         global_id = (i-1) + (j-2)*(g.Nx-1)
-        A[global_id,global_id] = val3
+        A[global_id, global_id] = val3
 
         neighbors = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
         for (ix, jy) in neighbors
             b_name = isonboundary(ix, jy, g)
             if b_name == "inside"
                 if ix==i-1
-                    A[global_id-1,global_id] = -val1
+                    A[global_id-1, global_id] = -val1
                 elseif ix==i+1
-                    A[global_id+1,global_id] = -val1
+                    A[global_id+1, global_id] = -val1
                 elseif jy==j-1
-                    A[global_id,global_id-g.Nx+1] = -val2
+                    A[global_id, global_id-g.Nx+1] = -val2
                 elseif jy==j+1
-                    A[global_id,global_id+g.Nx-1] = -val2
+                    A[global_id, global_id+g.Nx-1] = -val2
                 end
             else
                 F[global_id] += bcvals[b_name] * l.u[ix,jy]
             end
         end
     end
+
+    ## Print stuff
+    println("A = \n", size(A))
+    println("F = \n", F)
+    show(stdout, "text/plain", vec2mat(F, g.Nx-1, g.Ny-1)')
 
     ## Solve system
     U = A\F
@@ -102,11 +112,19 @@ function solvelaplace(l::Laplace, g::Geometry)
 end
 
 function visualizelaplace(l::Laplace, g::Geometry)
-    x=range(0,1,length=g.Nx+1)
-    y=range(0,1,length=g.Ny+1)
+    x=range(0,g.Lx,length=g.Nx+1)
+    y=range(0,g.Ly,length=g.Ny+1)
+
+    # u = reverse(permutedims(l.u), dims=1)
+    # data = [u[i,j] for j in 1:g.Nx+1, i in 1:g.Ny+1]
 
     data = [l.u[i,j] for j in 1:g.Ny+1, i in 1:g.Nx+1]
-    plot(x, y, data, st=:surface, camera=(-30,30))
+
+    ## Display solution in 2d plane
+    show(stdout, "text/plain", mat22d(l.u))
+
+    plot(x, y, data, st=:surface, camera=(60,30), xlabel = "x", ylabel = "y", zlabel = "u")
+
 end
 
 
