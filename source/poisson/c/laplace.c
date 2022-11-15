@@ -13,7 +13,7 @@
 int main (void){
 
     double L = 1;
-    int N = 100;    // Discretidation en abcisse
+    int N = 500;    // Discretidation en abcisse
    
     // double H = 1.25;
     // int M = N*H/L;    // Discretidation en ordonne

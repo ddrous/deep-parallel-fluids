@@ -1,5 +1,5 @@
-using Plots
-
+using Plots, SparseArrays 
+plotlyjs()
 
 ## A simple rectangle regularly discretised
 mutable struct Geometry
@@ -22,8 +22,8 @@ mattovec(u::Matrix{T}) where {T<:Number} = vec(u)
 matto2d(u::Matrix{T}) where {T<:Number} = reverse(permutedims(u), dims=1)
 
 
-## A struct to hold out Laplace problem attributes
-mutable struct Laplace
+## A struct to hold out Poisson problem attributes
+mutable struct Poisson
     bc:: Float64
     u:: Matrix{Float64}
     f:: Matrix{Float64}
@@ -40,12 +40,12 @@ function setbc(u::Matrix{T}, bc::Float64, g::Geometry) where {T<:Number}
 end
 
 
-## Initiate a Laplace problem
-function initlaplace(g::Geometry; bc::Float64=1.0, fval::Float64=1.0)
+## Initiate a Poisson problem
+function initpoisson(g::Geometry; bc::Float64=1.0, fval::Float64=1.0)
     u = zeros(Float64, (g.Nx+1,g.Ny+1))
     setbc(u, bc, g)
     f = fill(fval, (g.Nx+1,g.Ny+1))
-    return Laplace(bc, u, f)
+    return Poisson(bc, u, f)
 end
 
 
@@ -67,9 +67,10 @@ end
 
 
 ## Solve a Laplave problem
-function solvelaplace(l::Laplace, g::Geometry)
+function solvepoisson(l::Poisson, g::Geometry)
     n = (g.Nx-1)*(g.Ny-1)
-    A = zeros(Float64, (n,n))
+    # A = zeros(Float64, (n,n))
+    A = spzeros(Float64, (n,n))
     F = mattovec(l.f[2:g.Nx, 2:g.Ny])
 
     Δx = g.Lx/g.Nx
@@ -115,8 +116,8 @@ function solvelaplace(l::Laplace, g::Geometry)
 end
 
 
-## visualize Laplace problem's solution
-function visualizelaplace(l::Laplace, g::Geometry)
+## visualize a frame of the Poisson problem's solution
+function visualizepoisson(l::Poisson, g::Geometry)
     ## Display solution in a 2D plane
     println("\n----Solution----")
     display(matto2d(l.u))
@@ -127,17 +128,63 @@ function visualizelaplace(l::Laplace, g::Geometry)
     y=range(0,g.Ly,length=g.Ny+1)
     data = [l.u[i,j] for j in 1:g.Ny+1, i in 1:g.Nx+1]
 
-    title = "Numerical solution of the Laplace problem"
-    plot(x, y, data, st=:surface, camera=(30,30), xlabel="x", ylabel="y", zlabel="u", title=title)
+    anns = [(0, 5, Plots.text("  N=$(g.Nx)")),
+            (0, 4.7, Plots.text("M=$(g.Ny)")),
+            (1, 5, Plots.text("Δx=$(g.Lx/g.Nx)")),
+            (1, 4.7, Plots.text("Δy=$(g.Ly/g.Ny)")),
+            (2, 5, Plots.text("f=$(l.f[1,1])")),
+            (2, 4.7, Plots.text("   bc=$(l.bc)")),
+            (0, 0, Plots.text("RDN")),
+            (2, 5.6, Plots.text(" "))
+            ]
+    title = "Numerical solution of the Poisson problem"
+
+    plot(x, y, data,
+        xlabel="x", ylabel="y", zlabel="u", 
+        camera=(30, 30), 
+        st=:surface,
+        annotations=anns,
+        title=title,
+        titlefontsize=18)
+end
+
+
+## Visiualize a gif of the Poisson problem's solution
+function makepoissongif(c::Tuple, l::Poisson, g::Geometry)
+    x=range(0, g.Lx, length=g.Nx+1)
+    y=range(0, g.Ly, length=g.Ny+1)
+    data = [l.u[i,j] for j in 1:g.Ny+1, i in 1:g.Nx+1]
+
+    anns = [(0, 5, Plots.text("  N=$(g.Nx)")),
+            (0, 4.7, Plots.text("M=$(g.Ny)")),
+            (1, 5, Plots.text("Δx=$(g.Lx/g.Nx)")),
+            (1, 4.7, Plots.text("Δy=$(g.Ly/g.Ny)")),
+            (2, 5, Plots.text("f=$(l.f[1,1])")),
+            (2, 4.7, Plots.text("   bc=$(l.bc)")),
+            (0, 0, Plots.text("RDN")),
+            (2, 5.6, Plots.text(" "))
+            ]
+    title = "Numerical solution of the Poisson problem"
+
+    @gif for cx in vcat(c[1]:-2:c[2], c[2]:2:c[1])
+        plot(x, y, data,
+        xlabel="x", ylabel="y", zlabel="u", 
+        camera=(cx, 30), 
+        st=:surface,
+        annotations=anns,
+        title=title,
+        titlefontsize=18)
+    end
 end
 
 
 ### Run the code in a function: no global variables !
 function main()
     geo = Geometry(1,1,100,50)
-    pb = initlaplace(geo; bc=1.0, fval=2.0)
-    solvelaplace(pb, geo)
-    visualizelaplace(pb, geo)
+    pb = initpoisson(geo; bc=1.0, fval=2.0)
+    @time solvepoisson(pb, geo)
+    visualizepoisson(pb, geo)
+    # makepoissongif((80, -20), pb, geo)
 end
 
 
