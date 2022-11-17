@@ -96,3 +96,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+source/.DS_Store
+tutorials/.DS_Store
+.DS_Store

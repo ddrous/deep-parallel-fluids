@@ -1,6 +1,0 @@
-set pm3d
-set hidden
-# set title "Etat final partant d'une etat initial (completement et noir) du probleme de Laplace"
-splot 'plot.csv' using 1:2:4 with line notitle, \
-'plot.csv' using 1:2:3 with line notitle
-pause -1
