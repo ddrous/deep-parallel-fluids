@@ -24,7 +24,7 @@ end
 ## Find the index left of xi
 function locate(xi::Float64, x::Vector{Float64})
     n = size(x)
-    i = length(x[ .<= xi])
+    i = length(x[ x .<= xi])
     if i == 0                ## If the point is on or before the left/down boundary
         return i, 0.0
     elseif i == n            ## If the point is on or after the right/up boundary

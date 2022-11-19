@@ -1,21 +1,23 @@
+# using Base
+
 ## A simple rectangle regularly discretised
-mutable struct Geometry
+Base.@kwdef struct Geometry
     Lx::Float64
     Ly::Float64
     Nx::Int64
     Ny::Int64
-    Δx
-    Δy
-    x::Vector
-    y::Vector
+    Δx::Float64 = Lx / Nx
+    Δy::Float64 = Ly / Ny
+    x::Vector{Float64} = collect(0:Δx:Lx)
+    y::Vector{Float64} = collect(0:Δy:Ly)
 end
 
 
 
 ## A struct to hold our navierstokes problem attributes
 mutable struct NavierStokes
-    u:: Matrix{Float64}     ## Velocity
+    u:: Array{Float64, 3}     ## Velocity
     p:: Matrix{Float64}     ## Pressure
-    f:: Matrix{Float64}     ## External force
+    f:: Array{Float64, 3}     ## External force
     ρ:: Float64             ## Density
 end

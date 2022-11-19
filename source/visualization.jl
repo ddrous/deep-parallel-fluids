@@ -1,6 +1,7 @@
 
 include("structures.jl")
 include("geometry.jl")
+include("solver.jl")
 
 using Plots, SparseArrays
 plotlyjs()
@@ -40,10 +41,9 @@ end
 
 
 ## Visiualize a gif of the NavierStokes problem's solution
-function makenavierstokesgif(c::Tuple, l::NavierStokes, g::Geometry)
+function makenavierstokesgif(l::NavierStokes, g::Geometry)
     x=range(0, g.Lx, length=g.Nx+1)
     y=range(0, g.Ly, length=g.Ny+1)
-    data = [l.u[i,j] for j in 1:g.Ny+1, i in 1:g.Nx+1]
 
     anns = [(0, 5, Plots.text("  N=$(g.Nx)")),
             (0, 4.7, Plots.text("M=$(g.Ny)")),
@@ -54,15 +54,22 @@ function makenavierstokesgif(c::Tuple, l::NavierStokes, g::Geometry)
             (0, 0, Plots.text("RDN")),
             (2, 5.6, Plots.text(" "))
             ]
-    title = "Numerical solution of the Poisson problem"
+    title = "Numerical solution of the NavierStokes problem"
 
-    @gif for cx in vcat(c[1]:-2:c[2], c[2]:2:c[1])
+
+    # @gif for t in 0:Δt:l.T 
+    @gif for t in 1:1:10
+        Δt = 5 * min(g.Δx, g.Δy) / maximum(l.u)
+        solvenavierstokes(l, Δt, g)
+        data = [l.u[i,j] for j in 1:g.Ny+1, i in 1:g.Nx+1]
+
         plot(x, y, data,
         xlabel="x", ylabel="y", zlabel="u", 
-        camera=(cx, 30), 
+        camera=(30, 30), 
         st=:surface,
         annotations=anns,
         title=title,
         titlefontsize=18)
     end
+
 end

@@ -1,10 +1,11 @@
 include("geometry.jl")
+## This file sets the boundary conditions
 
 ## Normal component is zeros
 function nostick(u::Matrix, g::Geometry)
     for i in [1, g.Nx+1], j in [1, g.Ny+1]
         normal = boundarynormal(i, j, g)
-        # dot(u[i,j], normal) == 0      ## Use a macro to force this condition !!
+        # dot(u[i,j], normal) == 0      ## Use a macro to force this condition !!??
     end
     return nothing
 end
