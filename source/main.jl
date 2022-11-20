@@ -24,7 +24,7 @@ end
 
 ### Run the code in a function: no global variables !
 function main()
-    geo = Geometry(; Lx=1, Ly=1, Nx=100, Ny=50)
+    geo = Geometry(; Lx=1, Ly=1, Nx=50, Ny=30)
     pb = initnavierstokes(geo; ρ=1.0, fval=-1.0)
 
     Δt = 5 * min(geo.Δx, geo.Δy) / maximum(pb.u)
@@ -36,3 +36,4 @@ end
 
 main()
 
+# exit()

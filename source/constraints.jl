@@ -14,7 +14,7 @@ end
 ## Normal and tangential components are zeros
 function noslip(u::Matrix, g::Geometry)
     for i in [1, g.Nx+1], j in [1, g.Ny+1]
-        u[i,j] = 0.0
+        u[i,j,:] .= 0.0
     end
     return nothing
 end
