@@ -183,8 +183,8 @@ function main()
     geo = Geometry(1,1,100,50)
     pb = initpoisson(geo; bc=1.0, fval=2.0)
     @time solvepoisson(pb, geo)
-    visualizepoisson(pb, geo)
-    # makepoissongif((80, -20), pb, geo)
+    # visualizepoisson(pb, geo)
+    makepoissongif((80, -20), pb, geo)
 end
 
 
