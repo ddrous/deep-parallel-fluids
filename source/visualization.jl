@@ -50,7 +50,7 @@ function makenavierstokesgif(l::NavierStokes, g::Geometry)
             (1, 5, Plots.text("Δx=$(g.Lx/g.Nx)")),
             (1, 4.7, Plots.text("Δy=$(g.Ly/g.Ny)")),
             (2, 5, Plots.text("f=$(round(l.f[1,1,2]))")),
-            (2, 4.7, Plots.text("   u_wall=$(round(l.u[1,1,1]))")),
+            (2, 4.7, Plots.text("   u_wall=$(round(l.u[1,1]))")),
             (0, 0, Plots.text("RDN")),
             (2, 5.6, Plots.text(" "))
             ]
@@ -58,10 +58,11 @@ function makenavierstokesgif(l::NavierStokes, g::Geometry)
 
 
     # @gif for t in 0:Δt:l.T 
-    @gif for t in 1:1:50
+    @gif for t in 1:1:1
         Δt = 0.005 * min(g.Δx, g.Δy) / maximum(l.u)
         solvenavierstokes(l, Δt, g)
-        data = [norm(l.u[i,j,:]) for j in 1:g.Ny+1, i in 1:g.Nx+1]
+
+        data = [norm(gatherfield_xy(i,j,l.u,l.v)) for j in 1:g.Ny, i in 1:g.Nx]
 
         # plot(x, y, data,
         # xlabel="x", ylabel="y", zlabel="u", 
@@ -72,10 +73,10 @@ function makenavierstokesgif(l::NavierStokes, g::Geometry)
         # titlefontsize=18)
 
         heatmap(x, y, data,
-        xlabel="x", ylabel="y", zlabel="u",
-        # annotations=anns,
-        title=title,
-        titlefontsize=12)
+                xlabel="x", ylabel="y", zlabel="u",
+                # annotations=anns,
+                title=title,
+                titlefontsize=12)
     end
 
 end

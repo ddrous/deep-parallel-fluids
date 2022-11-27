@@ -8,8 +8,8 @@ Base.@kwdef struct Geometry
     Ny::Int64
     Δx::Float64 = Lx / Nx
     Δy::Float64 = Ly / Ny
-    x::Vector{Float64} = collect(1:1:Nx) .* Δx - (Δx / 2.0)
-    y::Vector{Float64} = collect(1:1:Ny) .* Δy - (Δy / 2.0)
+    x::Vector{Float64} = collect(1:1:Nx) .* Δx .- (Δx / 2.0)
+    y::Vector{Float64} = collect(1:1:Ny) .* Δy .- (Δy / 2.0)
 end
 
 

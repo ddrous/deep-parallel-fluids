@@ -16,15 +16,15 @@ matto2d(u::Matrix{T}) where {T<:Number} = reverse(permutedims(u), dims=1)
 ## N.B. Assumes matrix form (Ny,Nx), not 2D form (Nx,Ny) obtained by rotation
 function label(i::Int64, j::Int64, g::Geometry):AbstractString
     if j<=1
-        return "solid"   #west
-    elseif i>=g.Nx+1
-        return "solid"  #south
-    elseif j>=g.Ny+1
-        return "empty"   #east
+        return "west"   #west "solid"
+    elseif i>=g.Nx
+        return "south"  #south "solid"
+    elseif j>=g.Ny
+        return "east"   #east "empty"
     elseif i<=1
-        return "solid"  #north
+        return "north"  #north "solid"
     else
-        return "fluid" #inside
+        return "inside" #inside "fluid"
     end
 end
 
@@ -41,4 +41,17 @@ function boundarynormal(i::Int64, j::Int64, g::Geometry):Vector
     elseif i==1
         return [-1, 0]
     end
+end
+
+
+function gatherfield_xy(i::Int64, j::Int64, u::Matrix, v::Matrix):Float64
+    u = (u[i,j] + u[i+1,j] + v[i,j] + v[i,j+1]) ./ 4.0
+end
+
+function gatherfield_x(i::Int64, j::Int64, u::Matrix):Float64
+    u = (u[i,j] + u[i+1,j]) ./ 2.0
+end
+
+function gatherfield_y(i::Int64, j::Int64, u::Matrix):Float64
+    u = (u[i,j] + u[i,j+1]) ./ 2.0
 end

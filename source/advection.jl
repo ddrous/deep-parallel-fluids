@@ -42,22 +42,57 @@ function interpolate(a, b, α)
     return (1 .- α) .* a + α .* b
 end
 
+## Interpolate between a and b, with barycenter coeff α
+function interpolate(a::Float64, b::Float64, α::Float64)
+    return (1 - α) * a + α * b
+end
+
 ## Defines advection of quantity q over velocity field u using semilagrangian scheme: 2nd order RK
-function semilagrangian(q::Array{Float64, 3}, u::Array{Float64, 3}, Δt::Float64, g::Geometry)
+function semilagrangian_x(q::Array{Float64, 2}, u::Array{Float64, 2},Δt::Float64, g::Geometry)
     # (Nx_, Ny_) = size(q)
     q_ = similar(q)
-    for i in 1:g.Nx+1, j in 1:g.Ny+1
+    for i in 1:g.Nx, j in 1:g.Ny
         ## Find middle points
-        x_mid, y_mid = [g.x[i]; g.y[j]] - 0.5*Δt*u[i,j,:]
+        u_ij = gatherfield_x(i, j, u)
+        x_mid, y_mid = [g.x[i]; g.y[j]] .- 0.5*Δt*u_ij
         (i_mid, αi_mid) = locate(x_mid, g.x)        ## Could parallelise locate with .
         (j_mid, αj_mid) = locate(y_mid, g.y)
-        u_mid = interpolate(u[i_mid, j_mid, :], u[i_mid+1, j_mid+1, :], [αi_mid; αj_mid])
+        u_mid = interpolate(gatherfield_x(i_mid,j_mid,u), 
+                            gatherfield_x(i_mid+1,j_mid+1,u), 
+                            [αi_mid; αj_mid])
 
         ## Find the start point s
-        x_s, y_s = [g.x[i]; g.y[j]] - Δt*u_mid
+        x_s, y_s = [g.x[i]; g.y[j]] .- Δt*u_mid
         (i_s, αi_s) = locate(x_s, g.x)
         (j_s, αj_s) = locate(y_s, g.y)
-        q_[i,j,:] = interpolate(q[i_s, j_s, :], q[i_s+1, j_s+1, :], [αi_s; αj_s])
+        q_[i,j] = interpolate(gatherfield_x(i_s, j_s, q),
+                                gatherfield_x(i_s+1, j_s+1, q),
+                                αi_s)
+    end
+    return q_
+end
+
+
+function semilagrangian_y(q::Array{Float64, 2}, u::Array{Float64, 2},Δt::Float64, g::Geometry)
+    # (Nx_, Ny_) = size(q)
+    q_ = similar(q)
+    for i in 1:g.Nx, j in 1:g.Ny
+        ## Find middle points
+        u_ij = gatherfield_y(i, j, u)
+        x_mid, y_mid = [g.x[i]; g.y[j]] .- 0.5*Δt*u_ij
+        (i_mid, αi_mid) = locate(x_mid, g.x)        ## Could parallelise locate with .
+        (j_mid, αj_mid) = locate(y_mid, g.y)
+        u_mid = interpolate(gatherfield_y(i_mid,j_mid,u), 
+        gatherfield_y(i_mid+1,j_mid+1,u), 
+                            [αi_mid; αj_mid])
+
+        ## Find the start point s
+        x_s, y_s = [g.x[i]; g.y[j]] .- Δt*u_mid
+        (i_s, αi_s) = locate(x_s, g.x)
+        (j_s, αj_s) = locate(y_s, g.y)
+        q_[i,j] = interpolate(gatherfield_y(i_s, j_s, q),
+                                gatherfield_y(i_s+1, j_s+1, q),
+                                αj_s)
     end
     return q_
 end

@@ -10,7 +10,6 @@ function initnavierstokes(g::Geometry; ρ=1.0, fval::Float64=-1.0)
     v = zeros(Float64, (g.Nx, g.Ny+1))
     p = ones(Float64, (g.Nx, g.Ny))
 
-
     u[3:g.Nx-2, 2:g.Ny-1] .= 1.0     ## Non-zero velocity in legining of fluid
 
     p[g.Nx, :] .= 0.0   ## Pressure is zero in air at east
@@ -25,7 +24,8 @@ end
 
 ### Run the code in a function: no global variables !
 function main()
-    geo = Geometry(; Lx=1, Ly=1, Nx=50, Ny=30)
+    # geo = Geometry(; Lx=1, Ly=1, Nx=50, Ny=30)
+    geo = Geometry(; Lx=1, Ly=1, Nx=6, Ny=5)
     pb = initnavierstokes(geo; ρ=1.0, fval=-1.0)
 
     Δt = 5 * min(geo.Δx, geo.Δy) / maximum(pb.u)
